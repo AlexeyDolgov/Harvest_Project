@@ -1,27 +1,41 @@
 package harvest.domain;
 
 import java.time.LocalDate;
-import java.util.Set;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "beetroots")
 public class BeetrootsHarvesting extends HarvestingSizeDetermined {
 
-	private Set<BeetrootsVariety> variety;
+	@ManyToOne(optional = false, cascade = CascadeType.ALL)
+	@JoinColumn(name = "variety_id")
+	private BeetrootsVariety variety;
 
 	public BeetrootsHarvesting() {
 		super();
 	}
 
-	public BeetrootsHarvesting(Integer id, LocalDate date, Set<BeetrootsVariety> variety, Integer quantity,
-			Integer weight, Set<Size> size) {
+	public BeetrootsHarvesting(Integer id, LocalDate date, BeetrootsVariety variety, Integer quantity, Integer weight,
+			Size size) {
 		super(id, date, quantity, weight, size);
 		this.variety = variety;
 	}
 
-	public Set<BeetrootsVariety> getVariety() {
+	public BeetrootsHarvesting(LocalDate date, BeetrootsVariety variety, Integer quantity, Integer weight, Size size) {
+		super(date, quantity, weight, size);
+		this.variety = variety;
+	}
+
+	public BeetrootsVariety getVariety() {
 		return variety;
 	}
 
-	public void setVariety(Set<BeetrootsVariety> variety) {
+	public void setVariety(BeetrootsVariety variety) {
 		this.variety = variety;
 	}
 
@@ -30,5 +44,4 @@ public class BeetrootsHarvesting extends HarvestingSizeDetermined {
 		return "Id=" + getId() + ", Date=" + getDate() + ", Variety=" + getVariety() + ", Quantity=" + getQuantity()
 				+ ", Weight=" + getWeight() + ", Size=" + getSize();
 	}
-
 }

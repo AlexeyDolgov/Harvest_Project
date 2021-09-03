@@ -2,9 +2,25 @@ package harvest.domain;
 
 import java.time.LocalDate;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+
+@Entity
+@Table(name = "harvesting_dates")
 public class HarvestingDates {
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "date_id")
 	private Integer id;
+
+	@Column
+	@NotBlank(message = "Значение поля не может быть пустым!")
 	private LocalDate date;
 
 	public HarvestingDates() {
@@ -12,6 +28,10 @@ public class HarvestingDates {
 
 	public HarvestingDates(Integer id, LocalDate date) {
 		this.id = id;
+		this.date = date;
+	}
+
+	public HarvestingDates(LocalDate date) {
 		this.date = date;
 	}
 
@@ -30,5 +50,4 @@ public class HarvestingDates {
 	public void setDate(LocalDate date) {
 		this.date = date;
 	}
-
 }

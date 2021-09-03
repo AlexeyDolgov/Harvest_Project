@@ -1,27 +1,40 @@
 package harvest.domain;
 
 import java.time.LocalDate;
-import java.util.Set;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "cucumbers")
 public class CucumbersHarvesting extends HarvestingQuantityDetermined {
 
-	private Set<CucumbersVariety> variety;
+	@ManyToOne(optional = false, cascade = CascadeType.ALL)
+	@JoinColumn(name = "variety_id")
+	private CucumbersVariety variety;
 
 	public CucumbersHarvesting() {
 		super();
 	}
 
-	public CucumbersHarvesting(Integer id, LocalDate date, Set<CucumbersVariety> variety, Integer quantity,
-			Integer weight) {
+	public CucumbersHarvesting(Integer id, LocalDate date, CucumbersVariety variety, Integer quantity, Integer weight) {
 		super(id, date, quantity, weight);
 		this.variety = variety;
 	}
 
-	public Set<CucumbersVariety> getVariety() {
+	public CucumbersHarvesting(LocalDate date, CucumbersVariety variety, Integer quantity, Integer weight) {
+		super(date, quantity, weight);
+		this.variety = variety;
+	}
+
+	public CucumbersVariety getVariety() {
 		return variety;
 	}
 
-	public void setVariety(Set<CucumbersVariety> variety) {
+	public void setVariety(CucumbersVariety variety) {
 		this.variety = variety;
 	}
 
@@ -30,5 +43,4 @@ public class CucumbersHarvesting extends HarvestingQuantityDetermined {
 		return "Id=" + getId() + ", Date=" + getDate() + ", Variety=" + getVariety() + ", Quantity=" + getQuantity()
 				+ ", Weight=" + getWeight();
 	}
-
 }

@@ -1,37 +1,59 @@
 package harvest.domain;
 
 import java.time.LocalDate;
-import java.util.Set;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "potatoes")
 public class PotatoesHarvesting extends HarvestingQuantityDetermined {
 
-	private Set<PotatoesVariety> variety;
-	private Set<SizeExtended> size;
+	@ManyToOne(optional = false, cascade = CascadeType.ALL)
+	@JoinColumn(name = "variety_id")
+	private PotatoesVariety variety;
+
+	@Column
+	@Enumerated(EnumType.STRING)
+	private SizeExtended size;
 
 	public PotatoesHarvesting() {
 		super();
 	}
 
-	public PotatoesHarvesting(Integer id, LocalDate date, Set<PotatoesVariety> variety, Integer quantity,
-			Integer weight, Set<SizeExtended> size) {
+	public PotatoesHarvesting(Integer id, LocalDate date, PotatoesVariety variety, Integer quantity, Integer weight,
+			SizeExtended size) {
 		super(id, date, quantity, weight);
 		this.variety = variety;
 		this.size = size;
 	}
 
-	public Set<PotatoesVariety> getVariety() {
+	public PotatoesHarvesting(LocalDate date, PotatoesVariety variety, Integer quantity, Integer weight,
+			SizeExtended size) {
+		super(date, quantity, weight);
+		this.variety = variety;
+		this.size = size;
+	}
+
+	public PotatoesVariety getVariety() {
 		return variety;
 	}
 
-	public void setVariety(Set<PotatoesVariety> variety) {
+	public void setVariety(PotatoesVariety variety) {
 		this.variety = variety;
 	}
 
-	public Set<SizeExtended> getSize() {
+	public SizeExtended getSize() {
 		return size;
 	}
 
-	public void setSize(Set<SizeExtended> size) {
+	public void setSize(SizeExtended size) {
 		this.size = size;
 	}
 
@@ -40,5 +62,4 @@ public class PotatoesHarvesting extends HarvestingQuantityDetermined {
 		return "Id=" + getId() + ", Date=" + getDate() + ", Variety=" + getVariety() + ", Quantity=" + getQuantity()
 				+ ", Weight=" + getWeight() + ", Size=" + getSize();
 	}
-
 }

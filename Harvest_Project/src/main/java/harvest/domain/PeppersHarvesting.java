@@ -1,27 +1,40 @@
 package harvest.domain;
 
 import java.time.LocalDate;
-import java.util.Set;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "peppers")
 public class PeppersHarvesting extends HarvestingQuantityDetermined {
 
-	private Set<PeppersVariety> variety;
+	@ManyToOne(optional = false, cascade = CascadeType.ALL)
+	@JoinColumn(name = "variety_id")
+	private PeppersVariety variety;
 
 	public PeppersHarvesting() {
 		super();
 	}
 
-	public PeppersHarvesting(Integer id, LocalDate date, Set<PeppersVariety> variety, Integer quantity,
-			Integer weight) {
+	public PeppersHarvesting(Integer id, LocalDate date, PeppersVariety variety, Integer quantity, Integer weight) {
 		super(id, date, quantity, weight);
 		this.variety = variety;
 	}
 
-	public Set<PeppersVariety> getVariety() {
+	public PeppersHarvesting(LocalDate date, PeppersVariety variety, Integer quantity, Integer weight) {
+		super(date, quantity, weight);
+		this.variety = variety;
+	}
+
+	public PeppersVariety getVariety() {
 		return variety;
 	}
 
-	public void setVariety(Set<PeppersVariety> variety) {
+	public void setVariety(PeppersVariety variety) {
 		this.variety = variety;
 	}
 
@@ -30,5 +43,4 @@ public class PeppersHarvesting extends HarvestingQuantityDetermined {
 		return "Id=" + getId() + ", Date=" + getDate() + ", Variety=" + getVariety() + ", Quantity=" + getQuantity()
 				+ ", Weight=" + getWeight();
 	}
-
 }

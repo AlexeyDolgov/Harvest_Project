@@ -1,26 +1,41 @@
 package harvest.domain;
 
 import java.time.LocalDate;
-import java.util.Set;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class HarvestingSizeDetermined extends HarvestingQuantityDetermined {
 
-	private Set<Size> size;
+	@Column
+	@Enumerated(EnumType.STRING)
+	private Size size;
 
 	public HarvestingSizeDetermined() {
 		super();
 	}
 
-	public HarvestingSizeDetermined(Integer id, LocalDate date, Integer quantity, Integer weight, Set<Size> size) {
+	public HarvestingSizeDetermined(Integer id, LocalDate date, Integer quantity, Integer weight, Size size) {
 		super(id, date, quantity, weight);
 		this.size = size;
 	}
 
-	public Set<Size> getSize() {
+	public HarvestingSizeDetermined(LocalDate date, Integer quantity, Integer weight, Size size) {
+		super(date, quantity, weight);
+		this.size = size;
+	}
+
+	public Size getSize() {
 		return size;
 	}
 
-	public void setSize(Set<Size> size) {
+	public void setSize(Size size) {
 		this.size = size;
 	}
 }

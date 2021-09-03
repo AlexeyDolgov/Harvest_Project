@@ -1,26 +1,40 @@
 package harvest.domain;
 
 import java.time.LocalDate;
-import java.util.Set;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "fruits")
 public class FruitsHarvesting extends Harvesting {
 
-	private Set<FruitsVariety> variety;
+	@ManyToOne(optional = false, cascade = CascadeType.ALL)
+	@JoinColumn(name = "variety_id")
+	private FruitsVariety variety;
 
 	public FruitsHarvesting() {
 		super();
 	}
 
-	public FruitsHarvesting(Integer id, LocalDate date, Set<FruitsVariety> variety, Integer weight) {
+	public FruitsHarvesting(Integer id, LocalDate date, FruitsVariety variety, Integer weight) {
 		super(id, date, weight);
 		this.variety = variety;
 	}
 
-	public Set<FruitsVariety> getVariety() {
+	public FruitsHarvesting(LocalDate date, FruitsVariety variety, Integer weight) {
+		super(date, weight);
+		this.variety = variety;
+	}
+
+	public FruitsVariety getVariety() {
 		return variety;
 	}
 
-	public void setVariety(Set<FruitsVariety> variety) {
+	public void setVariety(FruitsVariety variety) {
 		this.variety = variety;
 	}
 
@@ -28,5 +42,4 @@ public class FruitsHarvesting extends Harvesting {
 	public String toString() {
 		return "Id=" + getId() + ", Date=" + getDate() + ", Variety=" + getVariety() + ", Weight=" + getWeight();
 	}
-
 }
