@@ -1,7 +1,5 @@
 package harvest.domain;
 
-import java.time.LocalDate;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -21,12 +19,12 @@ public abstract class HarvestingSizeDetermined extends HarvestingQuantityDetermi
 		super();
 	}
 
-	public HarvestingSizeDetermined(Integer id, LocalDate date, Integer quantity, Integer weight, Size size) {
+	public HarvestingSizeDetermined(Integer id, HarvestingDate date, Integer quantity, Integer weight, Size size) {
 		super(id, date, quantity, weight);
 		this.size = size;
 	}
 
-	public HarvestingSizeDetermined(LocalDate date, Integer quantity, Integer weight, Size size) {
+	public HarvestingSizeDetermined(HarvestingDate date, Integer quantity, Integer weight, Size size) {
 		super(date, quantity, weight);
 		this.size = size;
 	}

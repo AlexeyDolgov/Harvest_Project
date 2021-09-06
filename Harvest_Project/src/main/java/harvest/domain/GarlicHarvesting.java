@@ -1,7 +1,5 @@
 package harvest.domain;
 
-import java.time.LocalDate;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -20,12 +18,12 @@ public class GarlicHarvesting extends HarvestingQuantityDetermined {
 		super();
 	}
 
-	public GarlicHarvesting(Integer id, LocalDate date, GarlicVariety variety, Integer quantity, Integer weight) {
+	public GarlicHarvesting(Integer id, HarvestingDate date, GarlicVariety variety, Integer quantity, Integer weight) {
 		super(id, date, quantity, weight);
 		this.variety = variety;
 	}
 
-	public GarlicHarvesting(LocalDate date, GarlicVariety variety, Integer quantity, Integer weight) {
+	public GarlicHarvesting(HarvestingDate date, GarlicVariety variety, Integer quantity, Integer weight) {
 		super(date, quantity, weight);
 		this.variety = variety;
 	}

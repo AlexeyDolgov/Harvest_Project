@@ -1,7 +1,6 @@
 package harvest.domain;
 
-import java.time.LocalDate;
-
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,6 +8,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotBlank;
 
 @Entity
@@ -20,9 +21,9 @@ public abstract class Harvesting {
 	@Column
 	private Integer id;
 
-	@Column
-	@NotBlank(message = "Значение поля не может быть пустым!")
-	private LocalDate date;
+	@ManyToOne(optional = false, cascade = CascadeType.ALL)
+	@JoinColumn(name = "date_id")	
+	private HarvestingDate date;
 
 	@Column
 	@NotBlank(message = "Значение поля не может быть пустым!")
@@ -31,13 +32,13 @@ public abstract class Harvesting {
 	public Harvesting() {
 	}
 
-	public Harvesting(Integer id, LocalDate date, Integer weight) {
+	public Harvesting(Integer id, HarvestingDate date, Integer weight) {
 		this.id = id;
 		this.date = date;
 		this.weight = weight;
 	}
 
-	public Harvesting(LocalDate date, Integer weight) {
+	public Harvesting(HarvestingDate date, Integer weight) {
 		this.date = date;
 		this.weight = weight;
 	}
@@ -50,11 +51,11 @@ public abstract class Harvesting {
 		this.id = id;
 	}
 
-	public LocalDate getDate() {
+	public HarvestingDate getDate() {
 		return date;
 	}
 
-	public void setDate(LocalDate date) {
+	public void setDate(HarvestingDate date) {
 		this.date = date;
 	}
 

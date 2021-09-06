@@ -1,7 +1,5 @@
 package harvest.domain;
 
-import java.time.LocalDate;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;
@@ -20,12 +18,12 @@ public abstract class HarvestingQuantityDetermined extends Harvesting {
 		super();
 	}
 
-	public HarvestingQuantityDetermined(Integer id, LocalDate date, Integer quantity, Integer weight) {
+	public HarvestingQuantityDetermined(Integer id, HarvestingDate date, Integer quantity, Integer weight) {
 		super(id, date, weight);
 		this.quantity = quantity;
 	}
 
-	public HarvestingQuantityDetermined(LocalDate date, Integer quantity, Integer weight) {
+	public HarvestingQuantityDetermined(HarvestingDate date, Integer quantity, Integer weight) {
 		super(date, weight);
 		this.quantity = quantity;
 	}
