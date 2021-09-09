@@ -1,7 +1,12 @@
 package harvest.service;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,64 +25,121 @@ import harvest.domain.User;
 public class UserService implements UserDetailsService {
 	@Autowired
 	private UserRepository userRepository;
-	
+
 	@Autowired
 	private MailSender mailSender;
-	
+
 	@Autowired
-    private PasswordEncoder passwordEncoder;
-	
+	private PasswordEncoder passwordEncoder;
+
 	@Value("${spring.application.path}")
 	private String applicationPath;
-	
+
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 		return userRepository.findByEmail(email);
 	}
+
+	public User findById(Integer id) {
+		return userRepository.findById(id).get();
+	}
+
+	public List<User> findAll() {
+		return userRepository.findAll();
+	}
+
+	public boolean addUser(User user) {
+		User userFromDb = userRepository.findByEmail(user.getEmail());
+
+		if (userFromDb != null) {
+			return false;
+		}
+
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
+		user.setActive(false);
+		user.setAccessLevels(Collections.singleton(AccessLevel.USER));
+		user.setActivationCode(UUID.randomUUID().toString());
+
+		userRepository.save(user);
+		sendActivationCode(user);
+		return true;
+	}
+
+	public void sendActivationCode(User user) {
+		if (!StringUtils.isEmpty(user.getEmail())) {
+			String message = String.format("Доброго времени суток, %s %s! \n\n"
+					+ "Добро пожаловать в приложение \"Урожай©\".\n"
+					+ "Для продолжения регистрации и активации своего аккаунта перейдите, пожалуйста, по ссылке:\n"
+					+ applicationPath + "/activate/%s", user.getFirstName(), user.getLastName(),
+					user.getActivationCode());
+
+			mailSender.send(user.getEmail(), "Код активации аккаунта", message);
+		}
+	}
+
+	public boolean activateUser(String code) {
+		User user = userRepository.findByActivationCode(code);
+
+		if (user == null) {
+			return false;
+		}
+
+		user.setActive(true);
+		user.setActivationCode(null);
+
+		userRepository.save(user);
+
+		return true;
+	}
 	
-    public boolean addUser(User user) {
-        User userFromDb = userRepository.findByEmail(user.getEmail());
+    public void saveUser(User user, Map<String, String> form) {
+		user.setFirstName(form.get("firstName"));
+		user.setLastName(form.get("lastName"));
+		user.setEmail(form.get("email"));
 
-        if (userFromDb != null) {
-            return false;
-        }
+		if (form.keySet().contains("active")) {
+			user.setActive(true);
+		} else {
+			user.setActive(false);
+		}
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setActive(false);
-        user.setAccessLevels(Collections.singleton(AccessLevel.USER));
-        user.setActivationCode(UUID.randomUUID().toString());
+		user.getAccessLevels().clear();
 
-        userRepository.save(user);
+		Set<String> accessLevels = Arrays.stream(AccessLevel.values()).map(AccessLevel::name).collect(Collectors.toSet());
 
-        if (!StringUtils.isEmpty(user.getEmail())) {
-            String message = String.format(
-            		"Доброго времени суток, %s %s! \n\n" +
-            				"Добро пожаловать в приложение \"Урожай©\".\n" +
-            				"Для продолжения регистрации и активации своего аккаунта перейдите, пожалуйста, по ссылке:\n" +
-            				applicationPath + "/activate/%s",
-                    user.getFirstName(),
-                    user.getLastName(),
-                    user.getActivationCode()
-            );
+		for (String key : form.keySet()) {
+			if (accessLevels.contains(key)) {
+				user.getAccessLevels().add(AccessLevel.valueOf(key));
+			}
+		}
+	}
 
-            mailSender.send(user.getEmail(), "Код активации аккаунта", message);
-        }
+	public void updateProfile(User user, String firstName, String lastName, String email, String password) {
+		if (!StringUtils.isEmpty(firstName)) {
+			user.setFirstName(firstName);
+		}
 
-        return true;
-    }
+		if (!StringUtils.isEmpty(lastName)) {
+			user.setLastName(lastName);
+		}
 
-    public boolean activateUser(String code) {
-        User user = userRepository.findByActivationCode(code);
+		if (!StringUtils.isEmpty(password)) {
+			user.setPassword(passwordEncoder.encode(password));
+		}
 
-        if (user == null) {
-            return false;
-        }
+		String userEmail = user.getEmail();
+		boolean isEmailChanged = (email != null && !email.equals(userEmail))
+				|| (userEmail != null && !userEmail.equals(email));
 
-        user.setActive(true);
-        user.setActivationCode(null);
+		if (isEmailChanged) {
+			user.setEmail(email);
 
-        userRepository.save(user);
+			if (!StringUtils.isEmpty(email)) {
+				user.setActivationCode(UUID.randomUUID().toString());
+				sendActivationCode(user);
+			}
+		}
 
-        return true;
-    }
+		userRepository.save(user);
+	}
 }
