@@ -19,6 +19,14 @@
 			<li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
 				<a class="nav-link" th:href="@{/user}">[[#{navbar.users}]]</a>
 			</li>
+			<li class="nav-item dropdown" sec:authorize="hasAuthority('ADMIN')">
+				<a class="nav-link dropdown-toggle" data-toggle="dropdown" id="navbarDropdown" role="button" aria-haspopup="true" aria-expanded="false" href="#">
+					[[#{navbar.variety}]]
+				</a>
+				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+					<a class="dropdown-item" th:href="@{/tomatoesVariety}">[[#{navbar.variety.tomatoes}]]</a>
+				</div>
+			</li>
 		</ul>
 		
 		<div id="i18n">
