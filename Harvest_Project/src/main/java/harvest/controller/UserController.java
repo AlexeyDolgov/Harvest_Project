@@ -1,6 +1,5 @@
 package harvest.controller;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +7,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,14 +43,7 @@ public class UserController {
 	@PreAuthorize("hasAuthority('ADMIN')")
 	@PostMapping
 	public String userSave(@RequestParam Map<String, String> form, @RequestParam("userId") User user, Model model) {
-		Map<String, String> errors = new HashMap<>();
-		if (StringUtils.isEmpty(form.get("firstName"))) {
-			errors.put("firstNameError", "Имя пользователя не может быть пустым!");			
-		}
-
-		if (StringUtils.isEmpty(form.get("lastName"))) {
-			errors.put("lastNameError", "Фамилия пользователя не может быть пустым!");
-		}
+		Map<String, String> errors = userService.getUserErrors(form);
 
 		if (!errors.isEmpty()) {
 			model.mergeAttributes(errors);
@@ -66,7 +57,7 @@ public class UserController {
 
 		return "redirect:/user";
 	}
-	
+
 	@GetMapping("profile")
 	public String getProfile(@AuthenticationPrincipal User user, Model model) {
 		model.addAttribute("user", userService.findById(user.getId()));
@@ -78,30 +69,7 @@ public class UserController {
 	public String updateProfile(@AuthenticationPrincipal User user, @RequestParam String firstName,
 			@RequestParam String lastName, @RequestParam String email, @RequestParam String password,
 			@RequestParam String confirmPassword, Model model) {
-		Map<String, String> errors = new HashMap<>();
-		if (StringUtils.isEmpty(firstName)) {
-			errors.put("firstNameError", "Имя пользователя не может быть пустым!");			
-		}
-
-		if (StringUtils.isEmpty(lastName)) {
-			errors.put("lastNameError", "Фамилия пользователя не может быть пустым!");
-		}
-
-		if (StringUtils.isEmpty(email)) {
-			errors.put("emailError", "Email пользователя не может быть пустым!");
-		}
-
-		if (password.length() < 6) {
-			errors.put("passwordError", "Пароль пользователя должен быть не менее 6 символов!");
-		}
-
-		if (confirmPassword.length() < 6) {
-			errors.put("confirmPasswordError", "Пароль пользователя должен быть не менее 6 символов!");
-		}
-
-		if (password != "" && confirmPassword != "" && !password.equals(confirmPassword)) {
-			errors.put("confirmPasswordError", "Введённые пароли не совпадают!");
-        }
+		Map<String, String> errors = userService.getProfileErrors(firstName, lastName, email, password, confirmPassword);
 
 		if (!errors.isEmpty()) {
 			model.mergeAttributes(errors);
@@ -111,7 +79,14 @@ public class UserController {
 			return "profile";			
 		}
 
-		userService.updateProfile(user, firstName, lastName, email, password);
+		boolean userExists = !userService.updateProfile(user, firstName, lastName, email, password);
+
+		if (userExists) {
+			model.addAttribute("userExistsMessage", "Такой пользователь уже существует!");
+			model.addAttribute("user", userService.findById(user.getId()));
+
+			return "profile";
+		}
 
 		return "redirect:/main";
 	}

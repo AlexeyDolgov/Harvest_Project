@@ -2,6 +2,7 @@ package harvest.service;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,14 +48,20 @@ public class UserService implements UserDetailsService {
 	public List<User> findAll() {
 		return userRepository.findAll();
 	}
+	
+    public boolean checkIfExists(User user) {
+    	User userFromDb = userRepository.findByEmail(user.getEmail());
 
+    	if (userFromDb != null && user.getId() != userFromDb.getId()) {
+    		return true;
+    	}
+    	return false;
+    }
+    
 	public boolean addUser(User user) {
-		User userFromDb = userRepository.findByEmail(user.getEmail());
-
-		if (userFromDb != null) {
+		if (checkIfExists(user))
 			return false;
-		}
-
+		
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		user.setActive(false);
 		user.setAccessLevels(Collections.singleton(AccessLevel.USER));
@@ -92,6 +99,18 @@ public class UserService implements UserDetailsService {
 		return true;
 	}
 	
+    public Map<String, String> getUserErrors(Map<String, String> form) {
+    	Map<String, String> errors = new HashMap<>();
+    	if (StringUtils.isEmpty(form.get("firstName"))) {
+    		errors.put("firstNameError", "Имя пользователя не может быть пустым!");			
+    	}
+
+    	if (StringUtils.isEmpty(form.get("lastName"))) {
+    		errors.put("lastNameError", "Фамилия пользователя не может быть пустым!");
+    	}
+    	return errors;
+    }
+    
     public void saveUser(User user, Map<String, String> form) {
 		user.setFirstName(form.get("firstName"));
 		user.setLastName(form.get("lastName"));
@@ -114,7 +133,7 @@ public class UserService implements UserDetailsService {
 		}
 	}
 
-	public void updateProfile(User user, String firstName, String lastName, String email, String password) {
+	public boolean updateProfile(User user, String firstName, String lastName, String email, String password) {
 		user.setFirstName(firstName);
 		user.setLastName(lastName);
 		user.setPassword(passwordEncoder.encode(password));
@@ -124,12 +143,44 @@ public class UserService implements UserDetailsService {
 				|| (userEmail != null && !userEmail.equals(email));
 
 		if (isEmailChanged) {
+			if (checkIfExists(user))
+				return false;
+			
 			user.setEmail(email);
 			user.setActive(false);
 			user.setActivationCode(UUID.randomUUID().toString());
-			sendActivationCode(user);
+			sendActivationCode(user);			
 		}
 
 		userRepository.save(user);
+		return true;
+	}
+
+	public Map<String, String> getProfileErrors(String firstName, String lastName, String email, String password, String confirmPassword) {
+		Map<String, String> errors = new HashMap<>();
+		if (StringUtils.isEmpty(firstName)) {
+			errors.put("firstNameError", "Имя пользователя не может быть пустым!");			
+		}
+	
+		if (StringUtils.isEmpty(lastName)) {
+			errors.put("lastNameError", "Фамилия пользователя не может быть пустым!");
+		}
+	
+		if (StringUtils.isEmpty(email)) {
+			errors.put("emailError", "Email пользователя не может быть пустым!");
+		}
+	
+		if (password.length() < 6) {
+			errors.put("passwordError", "Пароль пользователя должен быть не менее 6 символов!");
+		}
+	
+		if (confirmPassword.length() < 6) {
+			errors.put("confirmPasswordError", "Пароль пользователя должен быть не менее 6 символов!");
+		}
+	
+		if (password != "" && confirmPassword != "" && !password.equals(confirmPassword)) {
+			errors.put("confirmPasswordError", "Введённые пароли не совпадают!");
+	    }
+		return errors;
 	}
 }
