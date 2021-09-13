@@ -21,7 +21,8 @@ hs_err_pid*
 *.nar
 *.ear
 *.zip
-*.tar.gz
+*.tar
+*.gz
 *.rar
 *.sar
 

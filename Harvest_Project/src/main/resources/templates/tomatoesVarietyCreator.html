@@ -4,7 +4,7 @@
 	  th:with="title=#{variety_create}">
 
 <th:block th:replace="fragments/common::commonPage(_, ~{::main})">
-	<main th:replace="fragments/commonVariety::commonVariety(${tomatoesVariety}, ${title}, @{/tomatoesVariety/create}, false)"/>
+	<main th:replace="fragments/commonTomatoesVariety::commonTomatoesVariety(${title}, @{/variety/tomatoes/create}, false)"/>
 </th:block>
 
 </html>

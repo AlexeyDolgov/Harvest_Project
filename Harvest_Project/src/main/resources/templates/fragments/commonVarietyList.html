@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+	  xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+
+<main th:fragment="commonVarietyList(varietyProduct, productVarieties)">
+	<h3>[[${title}]]</h3>
+	<a class="btn btn-primary mb-3" th:href="@{'/variety/' + ${varietyProduct} + '/create'}">[[#{variety.new}]]</a>
+	<table class="table table-bordered">
+		<thead class="thead-light">
+			<tr>
+				<th scope="col">[[#{variety.id}]]</th>
+				<th scope="col">[[#{variety.name}]]</th>
+				<th scope="col"></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="(${varietyProduct} + 'Variety') : ${productVarieties}">
+				<th th:text="${__(${varietyProduct} + 'Variety')__.id}"/>
+				<td th:text="${__(${varietyProduct} + 'Variety')__.name}"/>
+				<td>
+					<a th:href="@{'/variety/' + ${varietyProduct} + '/edit?id=' + ${__(${varietyProduct} + 'Variety')__.id}}">[[#{variety.edit}]]</a>
+ 					<span th:if="${__(${varietyProduct} + 'Variety')__.__${varietyProduct}__.isEmpty()}">
+						<a th:href="@{'/variety/' + ${varietyProduct} + '/delete?id=' + ${__(${varietyProduct} + 'Variety')__.id}}">[[#{variety.delete}]]</a>
+					</span>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</main>
+
+</html>

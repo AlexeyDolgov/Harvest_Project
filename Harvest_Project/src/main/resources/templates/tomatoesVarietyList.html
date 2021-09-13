@@ -4,31 +4,7 @@
 	  th:with="title=#{tomatoesVarieties}">
 
 <th:block th:replace="fragments/common::commonPage(_, ~{::main})">
-	<main>
-		<h3>[[${title}]]</h3>
-		<a class="btn btn-primary mb-3" th:href="@{'/tomatoesVariety/create'}">[[#{variety.new}]]</a>
-		<table class="table table-bordered">
-			<thead class="thead-light">
-				<tr>
-					<th scope="col">[[#{variety.id}]]</th>
-					<th scope="col">[[#{variety.name}]]</th>
-					<th scope="col"></th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr th:each="tomatoesVariety: ${tomatoesVarieties}">
-					<th th:text="${tomatoesVariety.id}"/>
-					<td th:text="${tomatoesVariety.name}"/>
-					<td>
-						<a th:href="@{'/tomatoesVariety/edit?id=' + ${tomatoesVariety.id}}">[[#{variety.edit}]]</a>
-<!-- 						<span th:if="${subject.faculties.isEmpty()}">  |   -->
-							<a th:href="@{'/tomatoesVariety/delete?id=' + ${tomatoesVariety.id}}">[[#{variety.delete}]]</a>
-<!-- 						</span> -->
-					</td>
-				</tr>
-			</tbody>
-		</table>
-	</main>
+	<main th:replace="fragments/commonVarietyList::commonVarietyList(tomatoes, ${tomatoesVarieties})"/>
 </th:block>
 
 </html>

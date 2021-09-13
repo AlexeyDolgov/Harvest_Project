@@ -22,7 +22,7 @@ import harvest.domain.TomatoesVariety;
 import harvest.service.TomatoesVarietyService;
 
 @Controller
-@RequestMapping("/tomatoesVariety")
+@RequestMapping("/variety/tomatoes")
 @PreAuthorize("hasAuthority('ADMIN')")
 public class TomatoesVarietyController {
 	@Autowired
@@ -108,18 +108,17 @@ public class TomatoesVarietyController {
 			return "tomatoesVarietyEditor";
 		}
 
-		return "redirect:/tomatoesVariety";
+		return "redirect:/variety/tomatoes";
 	}
 	
 	@GetMapping("/delete")
 	public String deleteTomatoesVariety(@RequestParam("id") TomatoesVariety tomatoesVariety) {
-//		проверка заполненности связанных полей
-//		if (!tomatoesVariety.getFaculties().isEmpty()) {
-//			return "redirect:/403";
-//		}
+		if (!tomatoesVariety.getTomatoes().isEmpty()) {
+			return "redirect:/403";
+		}
 		
 		tomatoesVarietyService.deleteTomatoesVariety(tomatoesVariety);
 
-		return "redirect:/tomatoesVariety";
+		return "redirect:/variety/tomatoes";
 	}
 }
