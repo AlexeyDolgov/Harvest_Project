@@ -1,0 +1,66 @@
+package harvest.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import harvest.dao.BerriesVarietyRepository;
+import harvest.domain.BerriesVariety;
+
+@Service
+public class BerriesVarietyService {
+	Logger logger = LoggerFactory.getLogger(BerriesVarietyService.class);
+	
+	@Autowired
+	private BerriesVarietyRepository berriesVarietyRepository;
+
+	public List<BerriesVariety> findAll() {
+		logger.trace("Getting all berries varieties from database...");
+		
+		return berriesVarietyRepository.findAll();
+	}
+	
+	public boolean checkIfExists(BerriesVariety berriesVariety) {
+    	logger.trace("Checking if stored berries variety already exists in database...");
+		
+		Optional<BerriesVariety> berriesVarietyFromDb = berriesVarietyRepository.findByName(berriesVariety.getName());
+	
+		if (berriesVarietyFromDb.isPresent() && berriesVariety.getId() != berriesVarietyFromDb.get().getId()) {
+			logger.warn("Berries variety with title \"" + berriesVarietyFromDb.get().getName() + "\" already exists in database...");
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean createBerriesVariety(BerriesVariety berriesVariety) {
+		logger.trace("Adding new berries variety to database...");
+		
+		if (checkIfExists(berriesVariety))
+			return false;
+
+		logger.trace("Saving new berries variety in database...");
+		berriesVarietyRepository.save(berriesVariety);
+		return true;
+	}
+
+	public boolean updateBerriesVariety(BerriesVariety berriesVariety) {
+		logger.trace("Updating berries variety in database...");
+		
+		if (checkIfExists(berriesVariety))
+			return false;
+		
+		logger.trace("Saving updated berries variety in database...");
+		berriesVarietyRepository.save(berriesVariety);
+		return true;
+	}
+
+	public void deleteBerriesVariety(BerriesVariety berriesVariety) {
+		logger.trace("Deleting berries variety from database...");
+		
+		berriesVarietyRepository.delete(berriesVariety);
+	}
+}

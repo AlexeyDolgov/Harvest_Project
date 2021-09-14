@@ -1,5 +1,6 @@
 package harvest.domain;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -11,7 +12,8 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "fruits_variety")
-public class FruitsVariety extends Variety {
+public class FruitsVariety extends Variety implements Serializable {
+	private static final long serialVersionUID = 1L;
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "variety")
 	@Column(nullable = false)
@@ -40,5 +42,30 @@ public class FruitsVariety extends Variety {
 	@Override
 	public String toString() {
 		return "Id=" + getId() + ", Name=" + getName() + ", Place=" + getPlace();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((fruits == null) ? 0 : fruits.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		FruitsVariety other = (FruitsVariety) obj;
+		if (fruits == null) {
+			if (other.fruits != null)
+				return false;
+		} else if (!fruits.equals(other.fruits))
+			return false;
+		return true;
 	}
 }

@@ -1,4 +1,4 @@
-messageResource.init({ filePath: '../' });
+messageResource.init({ filePath: '../../' });
 var currentLocale = localStorage.getItem('locales');
 messageResource.load('message', function() {}, currentLocale);
 
