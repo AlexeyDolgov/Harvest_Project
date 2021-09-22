@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="https://www.thymeleaf.org"
+	xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+
+<main th:fragment="commonVarietyImportConfirm(varietyProduct, title)">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="staticBackdropLabel">[[(${areAnyExistingVarieties} or ${areAnyNewVarieties})?#{variety.import.confirmHeader}:#{variety.import.errorHeader}]]</h5>
+			</div>
+			<div class="modal-body">
+				<form th:object="${__(${varietyProduct} + 'Varieties')__}" th:action="@{'/variety/' + ${varietyProduct} + '/importConfirm'}" method="post">
+					<table th:if="${areAnyExistingVarieties} or ${areAnyNewVarieties}" class="table table-sm table-bordered" th:style="(${areAnyExistingVarieties} and ${areAnyNewVarieties})?'margin-bottom: 0px;'">
+						<thead class="thead-light">
+							<tr>
+								<th scope="col">[[#{variety.import.name}]]</th>
+								<th scope="col">[[#{variety.import.status}]]</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="(${varietyProduct} + 'Variety'), iterStat : ${__(${varietyProduct} + 'VarietyMap')__}">
+								<td>
+									<input class="form-control-plaintext" type="text" th:name="${varietyProduct} + 'Varieties[__${iterStat.index}__].name'" th:value="${__(${varietyProduct} + 'Variety')__.key.name}"/>
+								</td>
+								<td>
+									<span th:if="${__(${varietyProduct} + 'Variety')__.value}" class="badge badge-pill badge-danger">[[#{variety.import.exists}]]!</span>
+									<span th:if="!${__(${varietyProduct} + 'Variety')__.value}" class="badge badge-pill badge-success">[[#{variety.import.new}]]</span>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<p th:if="${areAnyExistingVarieties} and ${areAnyNewVarieties}" class="text-right text-muted"><small>* [[#{variety.import.warning}]]!</small></p>
+					<div class="d-flex justify-content-end">
+						<a th:href="@{'/variety/' + ${varietyProduct}}"><button type="button" class="btn btn-secondary mb-3 mr-1">[[#{variety.import.cancel}]]</button></a>
+						<a th:href="@{'/variety/' + ${varietyProduct} + '/import'}"><button type="button" class="btn btn-secondary mb-3 mr-1">[[#{variety.import.back}]]</button></a>
+						<button th:if="${areAnyNewVarieties}" class="btn btn-primary mb-3" type="submit" id="submit">[[#{variety.import.create}]]</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</main>
+
+</html>

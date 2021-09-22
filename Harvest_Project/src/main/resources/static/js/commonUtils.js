@@ -33,6 +33,11 @@ function validateOnZero(field, errorMessage) {
 	return commonValidate(field, errorMessage, 'input', condition);
 }
 
+function validateOnIsNumeric(field, errorMessage) {
+	var condition = !isNumeric($("input[name='" + field + "']").val());
+	return commonValidate(field, errorMessage, 'input', condition);
+}
+
 function validateOnGreater(field, errorMessage, number) {
 	var condition = $("input[name='" + field + "']").val() > number;
 	return commonValidate(field, errorMessage, 'input', condition);
@@ -41,6 +46,11 @@ function validateOnGreater(field, errorMessage, number) {
 function validateOnLower(field, errorMessage, number) {
 	var condition = $("input[name='" + field + "']").val() < number;
 	return commonValidate(field, errorMessage, 'input', condition);
+}
+
+function validateTwoFieldsOnLower(field1, field2, errorMessage) {
+	var condition = $("input[name='" + field1 + "']").val().parseInt() < $("input[name='" + field2 + "']").val().parseInt();
+	return commonValidate(field1, errorMessage, 'input', condition);
 }
 
 function validateLengthOnLower(field, errorMessage, number) {
@@ -54,6 +64,15 @@ function validateOnMatch(field1, field2, errorMessage) {
 	return commonValidate(field2, errorMessage, 'input', condition);
 }
 
+function validateOnFileType(field, supportedTypes, errorMessage) {
+	var allowedExtensions = supportedTypes;
+	var filename = $("input[name='" + field + "']").val();
+	var baseFilename = filename.split(/[\\/]/).pop();
+	var fileExtension = baseFilename.slice(baseFilename.lastIndexOf(".") + 1);		
+	var condition = !allowedExtensions.includes(fileExtension);
+	return commonValidate(field, errorMessage, 'input', condition);
+}
+
 function validateOnImageType(field, errorMessage) {
 	var condition = !($("input[name='" + field + "']")[0].files[0].type.includes('image'));
 	return commonValidate(field, errorMessage, 'input', condition);
@@ -62,4 +81,8 @@ function validateOnImageType(field, errorMessage) {
 function validateFileSize(field, file, errorMessage, bytesSize) {
 	var condition = $("input[name='" + field + "']")[0].files[file].size > bytesSize;
 	return commonValidate(field, errorMessage, 'input', condition);
+}
+
+function isNumeric(n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
 }

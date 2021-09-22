@@ -5,6 +5,7 @@
 <main th:fragment="commonVarietyList(varietyProduct, productVarieties)">
 	<h3>[[${title}]]</h3>
 	<a class="btn btn-primary mb-3" th:href="@{'/variety/' + ${varietyProduct} + '/create'}">[[#{variety.new}]]</a>
+	<a class="btn btn-success mb-3" th:href="@{'/variety/' + ${varietyProduct} + '/import'}">[[#{variety.import}]]</a>
 	<table class="table table-bordered">
 		<thead class="thead-light">
 			<tr>
