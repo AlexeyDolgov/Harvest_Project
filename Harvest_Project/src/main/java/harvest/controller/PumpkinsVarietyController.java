@@ -1,7 +1,9 @@
 package harvest.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +16,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import harvest.domain.PumpkinsVariety;
+import harvest.dto.ImportVarietyFields;
+import harvest.dto.PumpkinsVarietyImportForm;
+import harvest.service.ExcelReader;
 import harvest.service.PumpkinsVarietyService;
 
 @Controller
@@ -27,6 +35,8 @@ import harvest.service.PumpkinsVarietyService;
 public class PumpkinsVarietyController {
 	@Autowired
 	private PumpkinsVarietyService pumpkinsVarietyService;
+	@Autowired
+	private ExcelReader excelReader;
 	
 	@GetMapping
 	public String viewPumpkinsVarietyList(Model model) {
@@ -119,6 +129,57 @@ public class PumpkinsVarietyController {
 		
 		pumpkinsVarietyService.deletePumpkinsVariety(pumpkinsVariety);
 
+		return "redirect:/variety/pumpkins";
+	}
+	
+	@GetMapping("/import")
+	public String viewPumpkinsVarietyImportForm() {
+		return "pumpkinsVarietyImport";
+	}
+	
+	@PostMapping("/import")
+	public RedirectView getPumpkinsImportVarietyFields(ImportVarietyFields importVarietyFields, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) throws IOException {
+		redirectAttributes.addFlashAttribute("importVarietyFields", importVarietyFields);
+		
+		return new RedirectView("/variety/pumpkins/importConfirm");
+	}
+	
+	@GetMapping("/importConfirm")
+	public String viewPumpkinsVarietyImportConfirmList(@ModelAttribute("importVarietyFields") ImportVarietyFields importVarietyFields, Model model) throws IOException {
+		List<Map<Integer, String>> list = excelReader.readFromCertainRangeInExcelFile(importVarietyFields);
+		List<PumpkinsVariety> pumpkinsVarietyList = pumpkinsVarietyService.mapPumpkinsVarietyFromExcelList(list, importVarietyFields);
+		
+		Map<PumpkinsVariety, Boolean> pumpkinsVarietyMap = new HashMap<PumpkinsVariety, Boolean>();
+		Boolean areAnyExistingVarieties = false;
+		Boolean areAnyNewVarieties = false;
+
+		for (PumpkinsVariety pumpkinsVariety : pumpkinsVarietyList) {
+			boolean doesExist = pumpkinsVarietyService.checkIfExists(pumpkinsVariety);
+			
+			pumpkinsVarietyMap.put(pumpkinsVariety, doesExist);
+			
+			if (doesExist) {
+				areAnyExistingVarieties = true;
+			} else if (!(pumpkinsVariety.getName() == null)) {
+				areAnyNewVarieties = true;
+			}			
+		}
+		
+		model.addAttribute("pumpkinsVarietyMap", pumpkinsVarietyMap);
+		model.addAttribute("areAnyExistingVarieties", areAnyExistingVarieties);
+		model.addAttribute("areAnyNewVarieties", areAnyNewVarieties);
+		
+		return "pumpkinsVarietyImportConfirm";
+	}
+
+	@PostMapping("/importConfirm")
+	public String savePumpkinsVarietiesList(@ModelAttribute("pumpkinsVarietyImportForm") PumpkinsVarietyImportForm pumpkinsVarietyImportForm, Model model) {
+		List<PumpkinsVariety> pumpkinsVarieties = pumpkinsVarietyImportForm.getPumpkinsVarieties();
+
+		for (PumpkinsVariety pumpkinsVariety : pumpkinsVarieties) {
+			pumpkinsVarietyService.createPumpkinsVariety(pumpkinsVariety);
+		}
+		
 		return "redirect:/variety/pumpkins";
 	}
 }

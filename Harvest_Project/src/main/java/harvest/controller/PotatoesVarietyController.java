@@ -1,7 +1,9 @@
 package harvest.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +16,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import harvest.domain.PotatoesVariety;
+import harvest.dto.ImportVarietyFields;
+import harvest.dto.PotatoesVarietyImportForm;
+import harvest.service.ExcelReader;
 import harvest.service.PotatoesVarietyService;
 
 @Controller
@@ -27,6 +35,8 @@ import harvest.service.PotatoesVarietyService;
 public class PotatoesVarietyController {
 	@Autowired
 	private PotatoesVarietyService potatoesVarietyService;
+	@Autowired
+	private ExcelReader excelReader;
 	
 	@GetMapping
 	public String viewPotatoesVarietyList(Model model) {
@@ -119,6 +129,57 @@ public class PotatoesVarietyController {
 		
 		potatoesVarietyService.deletePotatoesVariety(potatoesVariety);
 
+		return "redirect:/variety/potatoes";
+	}
+	
+	@GetMapping("/import")
+	public String viewPotatoesVarietyImportForm() {
+		return "potatoesVarietyImport";
+	}
+	
+	@PostMapping("/import")
+	public RedirectView getPotatoesImportVarietyFields(ImportVarietyFields importVarietyFields, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) throws IOException {
+		redirectAttributes.addFlashAttribute("importVarietyFields", importVarietyFields);
+		
+		return new RedirectView("/variety/potatoes/importConfirm");
+	}
+	
+	@GetMapping("/importConfirm")
+	public String viewPotatoesVarietyImportConfirmList(@ModelAttribute("importVarietyFields") ImportVarietyFields importVarietyFields, Model model) throws IOException {
+		List<Map<Integer, String>> list = excelReader.readFromCertainRangeInExcelFile(importVarietyFields);
+		List<PotatoesVariety> potatoesVarietyList = potatoesVarietyService.mapPotatoesVarietyFromExcelList(list, importVarietyFields);
+		
+		Map<PotatoesVariety, Boolean> potatoesVarietyMap = new HashMap<PotatoesVariety, Boolean>();
+		Boolean areAnyExistingVarieties = false;
+		Boolean areAnyNewVarieties = false;
+
+		for (PotatoesVariety potatoesVariety : potatoesVarietyList) {
+			boolean doesExist = potatoesVarietyService.checkIfExists(potatoesVariety);
+			
+			potatoesVarietyMap.put(potatoesVariety, doesExist);
+			
+			if (doesExist) {
+				areAnyExistingVarieties = true;
+			} else if (!(potatoesVariety.getName() == null)) {
+				areAnyNewVarieties = true;
+			}			
+		}
+		
+		model.addAttribute("potatoesVarietyMap", potatoesVarietyMap);
+		model.addAttribute("areAnyExistingVarieties", areAnyExistingVarieties);
+		model.addAttribute("areAnyNewVarieties", areAnyNewVarieties);
+		
+		return "potatoesVarietyImportConfirm";
+	}
+
+	@PostMapping("/importConfirm")
+	public String savePotatoesVarietiesList(@ModelAttribute("potatoesVarietyImportForm") PotatoesVarietyImportForm potatoesVarietyImportForm, Model model) {
+		List<PotatoesVariety> potatoesVarieties = potatoesVarietyImportForm.getPotatoesVarieties();
+
+		for (PotatoesVariety potatoesVariety : potatoesVarieties) {
+			potatoesVarietyService.createPotatoesVariety(potatoesVariety);
+		}
+		
 		return "redirect:/variety/potatoes";
 	}
 }

@@ -1,6 +1,9 @@
 package harvest.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import harvest.dao.CornVarietyRepository;
 import harvest.domain.CornVariety;
+import harvest.dto.ImportVarietyFields;
 
 @Service
 public class CornVarietyService {
@@ -62,5 +66,33 @@ public class CornVarietyService {
 		logger.trace("Deleting corn variety from database...");
 		
 		cornVarietyRepository.delete(cornVariety);
+	}
+
+	public List<CornVariety> mapCornVarietyFromExcelList(List<Map<Integer, String>> list,
+			ImportVarietyFields importVarietyFields) {
+		logger.trace("Mapping corn varieties to domain objects...");
+		
+		List<CornVariety> mappedList = new ArrayList<>();
+
+		for (Map<Integer, String> map : list) {
+			CornVariety cornVariety = new CornVariety();
+
+			for (Entry<Integer, String> entry : map.entrySet()) {
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("id"))) {
+					Integer entryValue = Double.valueOf(entry.getValue()).intValue();
+					cornVariety.setId(entryValue);
+				}
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("name"))) {
+					String entryValue = (String) entry.getValue();
+					cornVariety.setName(entryValue);
+				}
+			}
+
+			mappedList.add(cornVariety);
+		}
+
+		return mappedList;
 	}
 }

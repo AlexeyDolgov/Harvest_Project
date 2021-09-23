@@ -1,7 +1,9 @@
 package harvest.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,12 +16,18 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import harvest.domain.CarrotsVariety;
+import harvest.dto.CarrotsVarietyImportForm;
+import harvest.dto.ImportVarietyFields;
 import harvest.service.CarrotsVarietyService;
+import harvest.service.ExcelReader;
 
 @Controller
 @RequestMapping("/variety/carrots")
@@ -27,6 +35,8 @@ import harvest.service.CarrotsVarietyService;
 public class CarrotsVarietyController {
 	@Autowired
 	private CarrotsVarietyService carrotsVarietyService;
+	@Autowired
+	private ExcelReader excelReader;
 	
 	@GetMapping
 	public String viewCarrotsVarietyList(Model model) {
@@ -119,6 +129,57 @@ public class CarrotsVarietyController {
 		
 		carrotsVarietyService.deleteCarrotsVariety(carrotsVariety);
 
+		return "redirect:/variety/carrots";
+	}
+	
+	@GetMapping("/import")
+	public String viewCarrotsVarietyImportForm() {
+		return "carrotsVarietyImport";
+	}
+	
+	@PostMapping("/import")
+	public RedirectView getCarrotsImportVarietyFields(ImportVarietyFields importVarietyFields, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) throws IOException {
+		redirectAttributes.addFlashAttribute("importVarietyFields", importVarietyFields);
+		
+		return new RedirectView("/variety/carrots/importConfirm");
+	}
+	
+	@GetMapping("/importConfirm")
+	public String viewCarrotsVarietyImportConfirmList(@ModelAttribute("importVarietyFields") ImportVarietyFields importVarietyFields, Model model) throws IOException {
+		List<Map<Integer, String>> list = excelReader.readFromCertainRangeInExcelFile(importVarietyFields);
+		List<CarrotsVariety> carrotsVarietyList = carrotsVarietyService.mapCarrotsVarietyFromExcelList(list, importVarietyFields);
+		
+		Map<CarrotsVariety, Boolean> carrotsVarietyMap = new HashMap<CarrotsVariety, Boolean>();
+		Boolean areAnyExistingVarieties = false;
+		Boolean areAnyNewVarieties = false;
+
+		for (CarrotsVariety carrotsVariety : carrotsVarietyList) {
+			boolean doesExist = carrotsVarietyService.checkIfExists(carrotsVariety);
+			
+			carrotsVarietyMap.put(carrotsVariety, doesExist);
+			
+			if (doesExist) {
+				areAnyExistingVarieties = true;
+			} else if (!(carrotsVariety.getName() == null)) {
+				areAnyNewVarieties = true;
+			}			
+		}
+		
+		model.addAttribute("carrotsVarietyMap", carrotsVarietyMap);
+		model.addAttribute("areAnyExistingVarieties", areAnyExistingVarieties);
+		model.addAttribute("areAnyNewVarieties", areAnyNewVarieties);
+		
+		return "carrotsVarietyImportConfirm";
+	}
+
+	@PostMapping("/importConfirm")
+	public String saveCarrotsVarietiesList(@ModelAttribute("carrotsVarietyImportForm") CarrotsVarietyImportForm carrotsVarietyImportForm, Model model) {
+		List<CarrotsVariety> carrotsVarieties = carrotsVarietyImportForm.getCarrotsVarieties();
+
+		for (CarrotsVariety carrotsVariety : carrotsVarieties) {
+			carrotsVarietyService.createCarrotsVariety(carrotsVariety);
+		}
+		
 		return "redirect:/variety/carrots";
 	}
 }

@@ -1,6 +1,9 @@
 package harvest.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import harvest.dao.BerriesVarietyRepository;
 import harvest.domain.BerriesVariety;
+import harvest.dto.ImportVarietyFields;
 
 @Service
 public class BerriesVarietyService {
@@ -62,5 +66,33 @@ public class BerriesVarietyService {
 		logger.trace("Deleting berries variety from database...");
 		
 		berriesVarietyRepository.delete(berriesVariety);
+	}
+
+	public List<BerriesVariety> mapBerriesVarietyFromExcelList(List<Map<Integer, String>> list,
+			ImportVarietyFields importVarietyFields) {
+		logger.trace("Mapping berries varieties to domain objects...");
+		
+		List<BerriesVariety> mappedList = new ArrayList<>();
+
+		for (Map<Integer, String> map : list) {
+			BerriesVariety berriesVariety = new BerriesVariety();
+
+			for (Entry<Integer, String> entry : map.entrySet()) {
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("id"))) {
+					Integer entryValue = Double.valueOf(entry.getValue()).intValue();
+					berriesVariety.setId(entryValue);
+				}
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("name"))) {
+					String entryValue = (String) entry.getValue();
+					berriesVariety.setName(entryValue);
+				}
+			}
+
+			mappedList.add(berriesVariety);
+		}
+
+		return mappedList;
 	}
 }

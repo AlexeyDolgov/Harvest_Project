@@ -1,6 +1,9 @@
 package harvest.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import harvest.dao.PumpkinsVarietyRepository;
 import harvest.domain.PumpkinsVariety;
+import harvest.dto.ImportVarietyFields;
 
 @Service
 public class PumpkinsVarietyService {
@@ -62,5 +66,33 @@ public class PumpkinsVarietyService {
 		logger.trace("Deleting pumpkins variety from database...");
 		
 		pumpkinsVarietyRepository.delete(pumpkinsVariety);
+	}
+
+	public List<PumpkinsVariety> mapPumpkinsVarietyFromExcelList(List<Map<Integer, String>> list,
+			ImportVarietyFields importVarietyFields) {
+		logger.trace("Mapping pumpkins varieties to domain objects...");
+		
+		List<PumpkinsVariety> mappedList = new ArrayList<>();
+
+		for (Map<Integer, String> map : list) {
+			PumpkinsVariety pumpkinsVariety = new PumpkinsVariety();
+
+			for (Entry<Integer, String> entry : map.entrySet()) {
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("id"))) {
+					Integer entryValue = Double.valueOf(entry.getValue()).intValue();
+					pumpkinsVariety.setId(entryValue);
+				}
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("name"))) {
+					String entryValue = (String) entry.getValue();
+					pumpkinsVariety.setName(entryValue);
+				}
+			}
+
+			mappedList.add(pumpkinsVariety);
+		}
+
+		return mappedList;
 	}
 }

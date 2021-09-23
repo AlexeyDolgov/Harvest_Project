@@ -1,6 +1,9 @@
 package harvest.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import harvest.dao.SquashVarietyRepository;
 import harvest.domain.SquashVariety;
+import harvest.dto.ImportVarietyFields;
 
 @Service
 public class SquashVarietyService {
@@ -62,5 +66,33 @@ public class SquashVarietyService {
 		logger.trace("Deleting squash variety from database...");
 		
 		squashVarietyRepository.delete(squashVariety);
+	}
+
+	public List<SquashVariety> mapSquashVarietyFromExcelList(List<Map<Integer, String>> list,
+			ImportVarietyFields importVarietyFields) {
+		logger.trace("Mapping squash varieties to domain objects...");
+		
+		List<SquashVariety> mappedList = new ArrayList<>();
+
+		for (Map<Integer, String> map : list) {
+			SquashVariety squashVariety = new SquashVariety();
+
+			for (Entry<Integer, String> entry : map.entrySet()) {
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("id"))) {
+					Integer entryValue = Double.valueOf(entry.getValue()).intValue();
+					squashVariety.setId(entryValue);
+				}
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("name"))) {
+					String entryValue = (String) entry.getValue();
+					squashVariety.setName(entryValue);
+				}
+			}
+
+			mappedList.add(squashVariety);
+		}
+
+		return mappedList;
 	}
 }

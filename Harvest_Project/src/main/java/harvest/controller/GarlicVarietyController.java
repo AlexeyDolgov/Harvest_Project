@@ -1,7 +1,9 @@
 package harvest.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +16,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import harvest.domain.GarlicVariety;
+import harvest.dto.GarlicVarietyImportForm;
+import harvest.dto.ImportVarietyFields;
+import harvest.service.ExcelReader;
 import harvest.service.GarlicVarietyService;
 
 @Controller
@@ -27,6 +35,8 @@ import harvest.service.GarlicVarietyService;
 public class GarlicVarietyController {
 	@Autowired
 	private GarlicVarietyService garlicVarietyService;
+	@Autowired
+	private ExcelReader excelReader;
 	
 	@GetMapping
 	public String viewGarlicVarietyList(Model model) {
@@ -119,6 +129,57 @@ public class GarlicVarietyController {
 		
 		garlicVarietyService.deleteGarlicVariety(garlicVariety);
 
+		return "redirect:/variety/garlic";
+	}
+	
+	@GetMapping("/import")
+	public String viewGarlicVarietyImportForm() {
+		return "garlicVarietyImport";
+	}
+	
+	@PostMapping("/import")
+	public RedirectView getGarlicImportVarietyFields(ImportVarietyFields importVarietyFields, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) throws IOException {
+		redirectAttributes.addFlashAttribute("importVarietyFields", importVarietyFields);
+		
+		return new RedirectView("/variety/garlic/importConfirm");
+	}
+	
+	@GetMapping("/importConfirm")
+	public String viewGarlicVarietyImportConfirmList(@ModelAttribute("importVarietyFields") ImportVarietyFields importVarietyFields, Model model) throws IOException {
+		List<Map<Integer, String>> list = excelReader.readFromCertainRangeInExcelFile(importVarietyFields);
+		List<GarlicVariety> garlicVarietyList = garlicVarietyService.mapGarlicVarietyFromExcelList(list, importVarietyFields);
+		
+		Map<GarlicVariety, Boolean> garlicVarietyMap = new HashMap<GarlicVariety, Boolean>();
+		Boolean areAnyExistingVarieties = false;
+		Boolean areAnyNewVarieties = false;
+
+		for (GarlicVariety garlicVariety : garlicVarietyList) {
+			boolean doesExist = garlicVarietyService.checkIfExists(garlicVariety);
+			
+			garlicVarietyMap.put(garlicVariety, doesExist);
+			
+			if (doesExist) {
+				areAnyExistingVarieties = true;
+			} else if (!(garlicVariety.getName() == null)) {
+				areAnyNewVarieties = true;
+			}			
+		}
+		
+		model.addAttribute("garlicVarietyMap", garlicVarietyMap);
+		model.addAttribute("areAnyExistingVarieties", areAnyExistingVarieties);
+		model.addAttribute("areAnyNewVarieties", areAnyNewVarieties);
+		
+		return "garlicVarietyImportConfirm";
+	}
+
+	@PostMapping("/importConfirm")
+	public String saveGarlicVarietiesList(@ModelAttribute("garlicVarietyImportForm") GarlicVarietyImportForm garlicVarietyImportForm, Model model) {
+		List<GarlicVariety> garlicVarieties = garlicVarietyImportForm.getGarlicVarieties();
+
+		for (GarlicVariety garlicVariety : garlicVarieties) {
+			garlicVarietyService.createGarlicVariety(garlicVariety);
+		}
+		
 		return "redirect:/variety/garlic";
 	}
 }

@@ -1,6 +1,9 @@
 package harvest.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import harvest.dao.CucumbersVarietyRepository;
 import harvest.domain.CucumbersVariety;
+import harvest.dto.ImportVarietyFields;
 
 @Service
 public class CucumbersVarietyService {
@@ -62,5 +66,33 @@ public class CucumbersVarietyService {
 		logger.trace("Deleting cucumbers variety from database...");
 		
 		cucumbersVarietyRepository.delete(cucumbersVariety);
+	}
+
+	public List<CucumbersVariety> mapCucumbersVarietyFromExcelList(List<Map<Integer, String>> list,
+			ImportVarietyFields importVarietyFields) {
+		logger.trace("Mapping cucumbers varieties to domain objects...");
+		
+		List<CucumbersVariety> mappedList = new ArrayList<>();
+
+		for (Map<Integer, String> map : list) {
+			CucumbersVariety cucumbersVariety = new CucumbersVariety();
+
+			for (Entry<Integer, String> entry : map.entrySet()) {
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("id"))) {
+					Integer entryValue = Double.valueOf(entry.getValue()).intValue();
+					cucumbersVariety.setId(entryValue);
+				}
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("name"))) {
+					String entryValue = (String) entry.getValue();
+					cucumbersVariety.setName(entryValue);
+				}
+			}
+
+			mappedList.add(cucumbersVariety);
+		}
+
+		return mappedList;
 	}
 }

@@ -1,7 +1,10 @@
 package harvest.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import harvest.dao.GarlicVarietyRepository;
 import harvest.domain.GarlicVariety;
+import harvest.domain.TomatoesVariety;
+import harvest.dto.ImportVarietyFields;
 
 @Service
 public class GarlicVarietyService {
@@ -62,5 +67,33 @@ public class GarlicVarietyService {
 		logger.trace("Deleting garlic variety from database...");
 		
 		garlicVarietyRepository.delete(garlicVariety);
+	}
+
+	public List<GarlicVariety> mapGarlicVarietyFromExcelList(List<Map<Integer, String>> list,
+			ImportVarietyFields importVarietyFields) {
+		logger.trace("Mapping garlic varieties to domain objects...");
+		
+		List<GarlicVariety> mappedList = new ArrayList<>();
+
+		for (Map<Integer, String> map : list) {
+			GarlicVariety garlicVariety = new GarlicVariety();
+
+			for (Entry<Integer, String> entry : map.entrySet()) {
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("id"))) {
+					Integer entryValue = Double.valueOf(entry.getValue()).intValue();
+					garlicVariety.setId(entryValue);
+				}
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("name"))) {
+					String entryValue = (String) entry.getValue();
+					garlicVariety.setName(entryValue);
+				}
+			}
+
+			mappedList.add(garlicVariety);
+		}
+
+		return mappedList;
 	}
 }

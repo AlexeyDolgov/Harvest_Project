@@ -1,6 +1,9 @@
 package harvest.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import harvest.dao.PeppersVarietyRepository;
 import harvest.domain.PeppersVariety;
+import harvest.dto.ImportVarietyFields;
 
 @Service
 public class PeppersVarietyService {
@@ -62,5 +66,33 @@ public class PeppersVarietyService {
 		logger.trace("Deleting peppers variety from database...");
 		
 		peppersVarietyRepository.delete(peppersVariety);
+	}
+
+	public List<PeppersVariety> mapPeppersVarietyFromExcelList(List<Map<Integer, String>> list,
+			ImportVarietyFields importVarietyFields) {
+		logger.trace("Mapping peppers varieties to domain objects...");
+		
+		List<PeppersVariety> mappedList = new ArrayList<>();
+
+		for (Map<Integer, String> map : list) {
+			PeppersVariety peppersVariety = new PeppersVariety();
+
+			for (Entry<Integer, String> entry : map.entrySet()) {
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("id"))) {
+					Integer entryValue = Double.valueOf(entry.getValue()).intValue();
+					peppersVariety.setId(entryValue);
+				}
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("name"))) {
+					String entryValue = (String) entry.getValue();
+					peppersVariety.setName(entryValue);
+				}
+			}
+
+			mappedList.add(peppersVariety);
+		}
+
+		return mappedList;
 	}
 }

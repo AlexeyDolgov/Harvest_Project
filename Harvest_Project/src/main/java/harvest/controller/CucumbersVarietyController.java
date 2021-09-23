@@ -1,7 +1,9 @@
 package harvest.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,12 +16,18 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import harvest.domain.CucumbersVariety;
+import harvest.dto.CucumbersVarietyImportForm;
+import harvest.dto.ImportVarietyFields;
 import harvest.service.CucumbersVarietyService;
+import harvest.service.ExcelReader;
 
 @Controller
 @RequestMapping("/variety/cucumbers")
@@ -27,6 +35,8 @@ import harvest.service.CucumbersVarietyService;
 public class CucumbersVarietyController {
 	@Autowired
 	private CucumbersVarietyService cucumbersVarietyService;
+	@Autowired
+	private ExcelReader excelReader;
 	
 	@GetMapping
 	public String viewCucumbersVarietyList(Model model) {
@@ -119,6 +129,57 @@ public class CucumbersVarietyController {
 		
 		cucumbersVarietyService.deleteCucumbersVariety(cucumbersVariety);
 
+		return "redirect:/variety/cucumbers";
+	}
+	
+	@GetMapping("/import")
+	public String viewCucumbersVarietyImportForm() {
+		return "cucumbersVarietyImport";
+	}
+	
+	@PostMapping("/import")
+	public RedirectView getCucumbersImportVarietyFields(ImportVarietyFields importVarietyFields, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) throws IOException {
+		redirectAttributes.addFlashAttribute("importVarietyFields", importVarietyFields);
+		
+		return new RedirectView("/variety/cucumbers/importConfirm");
+	}
+	
+	@GetMapping("/importConfirm")
+	public String viewCucumbersVarietyImportConfirmList(@ModelAttribute("importVarietyFields") ImportVarietyFields importVarietyFields, Model model) throws IOException {
+		List<Map<Integer, String>> list = excelReader.readFromCertainRangeInExcelFile(importVarietyFields);
+		List<CucumbersVariety> cucumbersVarietyList = cucumbersVarietyService.mapCucumbersVarietyFromExcelList(list, importVarietyFields);
+		
+		Map<CucumbersVariety, Boolean> cucumbersVarietyMap = new HashMap<CucumbersVariety, Boolean>();
+		Boolean areAnyExistingVarieties = false;
+		Boolean areAnyNewVarieties = false;
+
+		for (CucumbersVariety cucumbersVariety : cucumbersVarietyList) {
+			boolean doesExist = cucumbersVarietyService.checkIfExists(cucumbersVariety);
+			
+			cucumbersVarietyMap.put(cucumbersVariety, doesExist);
+			
+			if (doesExist) {
+				areAnyExistingVarieties = true;
+			} else if (!(cucumbersVariety.getName() == null)) {
+				areAnyNewVarieties = true;
+			}			
+		}
+		
+		model.addAttribute("cucumbersVarietyMap", cucumbersVarietyMap);
+		model.addAttribute("areAnyExistingVarieties", areAnyExistingVarieties);
+		model.addAttribute("areAnyNewVarieties", areAnyNewVarieties);
+		
+		return "cucumbersVarietyImportConfirm";
+	}
+
+	@PostMapping("/importConfirm")
+	public String saveCucumbersVarietiesList(@ModelAttribute("cucumbersVarietyImportForm") CucumbersVarietyImportForm cucumbersVarietyImportForm, Model model) {
+		List<CucumbersVariety> cucumbersVarieties = cucumbersVarietyImportForm.getCucumbersVarieties();
+
+		for (CucumbersVariety cucumbersVariety : cucumbersVarieties) {
+			cucumbersVarietyService.createCucumbersVariety(cucumbersVariety);
+		}
+		
 		return "redirect:/variety/cucumbers";
 	}
 }

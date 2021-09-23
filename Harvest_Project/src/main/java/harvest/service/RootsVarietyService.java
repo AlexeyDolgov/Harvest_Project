@@ -1,6 +1,9 @@
 package harvest.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import harvest.dao.RootsVarietyRepository;
 import harvest.domain.RootsVariety;
+import harvest.dto.ImportVarietyFields;
 
 @Service
 public class RootsVarietyService {
@@ -62,5 +66,33 @@ public class RootsVarietyService {
 		logger.trace("Deleting roots variety from database...");
 		
 		rootsVarietyRepository.delete(rootsVariety);
+	}
+
+	public List<RootsVariety> mapRootsVarietyFromExcelList(List<Map<Integer, String>> list,
+			ImportVarietyFields importVarietyFields) {
+		logger.trace("Mapping roots varieties to domain objects...");
+		
+		List<RootsVariety> mappedList = new ArrayList<>();
+
+		for (Map<Integer, String> map : list) {
+			RootsVariety rootsVariety = new RootsVariety();
+
+			for (Entry<Integer, String> entry : map.entrySet()) {
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("id"))) {
+					Integer entryValue = Double.valueOf(entry.getValue()).intValue();
+					rootsVariety.setId(entryValue);
+				}
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("name"))) {
+					String entryValue = (String) entry.getValue();
+					rootsVariety.setName(entryValue);
+				}
+			}
+
+			mappedList.add(rootsVariety);
+		}
+
+		return mappedList;
 	}
 }

@@ -1,6 +1,9 @@
 package harvest.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import harvest.dao.CabbageVarietyRepository;
 import harvest.domain.CabbageVariety;
+import harvest.dto.ImportVarietyFields;
 
 @Service
 public class CabbageVarietyService {
@@ -62,5 +66,33 @@ public class CabbageVarietyService {
 		logger.trace("Deleting cabbage variety from database...");
 		
 		cabbageVarietyRepository.delete(cabbageVariety);
+	}
+
+	public List<CabbageVariety> mapCabbageVarietyFromExcelList(List<Map<Integer, String>> list,
+			ImportVarietyFields importVarietyFields) {
+		logger.trace("Mapping cabbage varieties to domain objects...");
+		
+		List<CabbageVariety> mappedList = new ArrayList<>();
+
+		for (Map<Integer, String> map : list) {
+			CabbageVariety cabbageVariety = new CabbageVariety();
+
+			for (Entry<Integer, String> entry : map.entrySet()) {
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("id"))) {
+					Integer entryValue = Double.valueOf(entry.getValue()).intValue();
+					cabbageVariety.setId(entryValue);
+				}
+
+				if (entry.getKey().equals(importVarietyFields.getColumnFields().get("name"))) {
+					String entryValue = (String) entry.getValue();
+					cabbageVariety.setName(entryValue);
+				}
+			}
+
+			mappedList.add(cabbageVariety);
+		}
+
+		return mappedList;
 	}
 }

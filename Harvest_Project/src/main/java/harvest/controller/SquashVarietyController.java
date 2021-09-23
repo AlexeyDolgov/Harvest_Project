@@ -1,7 +1,9 @@
 package harvest.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +16,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import harvest.domain.SquashVariety;
+import harvest.dto.ImportVarietyFields;
+import harvest.dto.SquashVarietyImportForm;
+import harvest.service.ExcelReader;
 import harvest.service.SquashVarietyService;
 
 @Controller
@@ -27,6 +35,8 @@ import harvest.service.SquashVarietyService;
 public class SquashVarietyController {
 	@Autowired
 	private SquashVarietyService squashVarietyService;
+	@Autowired
+	private ExcelReader excelReader;
 	
 	@GetMapping
 	public String viewSquashVarietyList(Model model) {
@@ -119,6 +129,57 @@ public class SquashVarietyController {
 		
 		squashVarietyService.deleteSquashVariety(squashVariety);
 
+		return "redirect:/variety/squash";
+	}
+	
+	@GetMapping("/import")
+	public String viewSquashVarietyImportForm() {
+		return "squashVarietyImport";
+	}
+	
+	@PostMapping("/import")
+	public RedirectView getSquashImportVarietyFields(ImportVarietyFields importVarietyFields, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) throws IOException {
+		redirectAttributes.addFlashAttribute("importVarietyFields", importVarietyFields);
+		
+		return new RedirectView("/variety/squash/importConfirm");
+	}
+	
+	@GetMapping("/importConfirm")
+	public String viewSquashVarietyImportConfirmList(@ModelAttribute("importVarietyFields") ImportVarietyFields importVarietyFields, Model model) throws IOException {
+		List<Map<Integer, String>> list = excelReader.readFromCertainRangeInExcelFile(importVarietyFields);
+		List<SquashVariety> squashVarietyList = squashVarietyService.mapSquashVarietyFromExcelList(list, importVarietyFields);
+		
+		Map<SquashVariety, Boolean> squashVarietyMap = new HashMap<SquashVariety, Boolean>();
+		Boolean areAnyExistingVarieties = false;
+		Boolean areAnyNewVarieties = false;
+
+		for (SquashVariety squashVariety : squashVarietyList) {
+			boolean doesExist = squashVarietyService.checkIfExists(squashVariety);
+			
+			squashVarietyMap.put(squashVariety, doesExist);
+			
+			if (doesExist) {
+				areAnyExistingVarieties = true;
+			} else if (!(squashVariety.getName() == null)) {
+				areAnyNewVarieties = true;
+			}			
+		}
+		
+		model.addAttribute("squashVarietyMap", squashVarietyMap);
+		model.addAttribute("areAnyExistingVarieties", areAnyExistingVarieties);
+		model.addAttribute("areAnyNewVarieties", areAnyNewVarieties);
+		
+		return "squashVarietyImportConfirm";
+	}
+
+	@PostMapping("/importConfirm")
+	public String saveSquashVarietiesList(@ModelAttribute("squashVarietyImportForm") SquashVarietyImportForm squashVarietyImportForm, Model model) {
+		List<SquashVariety> squashVarieties = squashVarietyImportForm.getSquashVarieties();
+
+		for (SquashVariety squashVariety : squashVarieties) {
+			squashVarietyService.createSquashVariety(squashVariety);
+		}
+		
 		return "redirect:/variety/squash";
 	}
 }
