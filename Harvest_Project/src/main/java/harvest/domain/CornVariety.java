@@ -7,6 +7,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -19,16 +21,20 @@ public class CornVariety extends Variety implements Serializable {
 	@Column(nullable = false)
 	private Set<CornHarvesting> corn;
 
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "season_id")
+	private CornSeason cornSeason;
+	
 	public CornVariety() {
 		super();
 	}
 
-	public CornVariety(Integer id, String name, Set<Place> place) {
-		super(id, name, place);
+	public CornVariety(Integer id, String name) {
+		super(id, name);
 	}
 
-	public CornVariety(String name, Set<Place> place) {
-		super(name, place);
+	public CornVariety(String name) {
+		super(name);
 	}
 
 	public Set<CornHarvesting> getCorn() {
@@ -39,9 +45,12 @@ public class CornVariety extends Variety implements Serializable {
 		this.corn = corn;
 	}
 
-	@Override
-	public String toString() {
-		return "Id=" + getId() + ", Name=" + getName() + ", Place=" + getPlace();
+	public CornSeason getCornSeason() {
+		return cornSeason;
+	}
+
+	public void setCornSeason(CornSeason cornSeason) {
+		this.cornSeason = cornSeason;
 	}
 
 	@Override
@@ -49,6 +58,7 @@ public class CornVariety extends Variety implements Serializable {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((corn == null) ? 0 : corn.hashCode());
+		result = prime * result + ((cornSeason == null) ? 0 : cornSeason.hashCode());
 		return result;
 	}
 
@@ -66,6 +76,16 @@ public class CornVariety extends Variety implements Serializable {
 				return false;
 		} else if (!corn.equals(other.corn))
 			return false;
+		if (cornSeason == null) {
+			if (other.cornSeason != null)
+				return false;
+		} else if (!cornSeason.equals(other.cornSeason))
+			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Id=" + getId() + ", Name=" + getName();
 	}
 }

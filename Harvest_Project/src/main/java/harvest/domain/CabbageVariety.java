@@ -7,6 +7,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -19,16 +21,20 @@ public class CabbageVariety extends Variety implements Serializable {
 	@Column(nullable = false)
 	private Set<CabbageHarvesting> cabbage;
 
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "season_id")
+	private CabbageSeason cabbageSeason;
+
 	public CabbageVariety() {
 		super();
 	}
 
-	public CabbageVariety(Integer id, String name, Set<Place> place) {
-		super(id, name, place);
+	public CabbageVariety(Integer id, String name) {
+		super(id, name);
 	}
 
-	public CabbageVariety(String name, Set<Place> place) {
-		super(name, place);
+	public CabbageVariety(String name) {
+		super(name);
 	}
 
 	public Set<CabbageHarvesting> getCabbage() {
@@ -39,9 +45,12 @@ public class CabbageVariety extends Variety implements Serializable {
 		this.cabbage = cabbage;
 	}
 
-	@Override
-	public String toString() {
-		return "Id=" + getId() + ", Name=" + getName() + ", Place=" + getPlace();
+	public CabbageSeason getCabbageSeason() {
+		return cabbageSeason;
+	}
+
+	public void setCabbageSeason(CabbageSeason cabbageSeason) {
+		this.cabbageSeason = cabbageSeason;
 	}
 
 	@Override
@@ -49,6 +58,7 @@ public class CabbageVariety extends Variety implements Serializable {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((cabbage == null) ? 0 : cabbage.hashCode());
+		result = prime * result + ((cabbageSeason == null) ? 0 : cabbageSeason.hashCode());
 		return result;
 	}
 
@@ -66,6 +76,16 @@ public class CabbageVariety extends Variety implements Serializable {
 				return false;
 		} else if (!cabbage.equals(other.cabbage))
 			return false;
+		if (cabbageSeason == null) {
+			if (other.cabbageSeason != null)
+				return false;
+		} else if (!cabbageSeason.equals(other.cabbageSeason))
+			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Id=" + getId() + ", Name=" + getName();
 	}
 }

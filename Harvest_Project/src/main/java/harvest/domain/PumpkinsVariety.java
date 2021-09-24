@@ -7,6 +7,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -19,16 +21,20 @@ public class PumpkinsVariety extends Variety implements Serializable {
 	@Column(nullable = false)
 	private Set<PumpkinsHarvesting> pumpkins;
 
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "season_id")
+	private PumpkinsSeason pumpkinsSeason;
+
 	public PumpkinsVariety() {
 		super();
 	}
 
-	public PumpkinsVariety(Integer id, String name, Set<Place> place) {
-		super(id, name, place);
+	public PumpkinsVariety(Integer id, String name) {
+		super(id, name);
 	}
 
-	public PumpkinsVariety(String name, Set<Place> place) {
-		super(name, place);
+	public PumpkinsVariety(String name) {
+		super(name);
 	}
 
 	public Set<PumpkinsHarvesting> getPumpkins() {
@@ -39,9 +45,12 @@ public class PumpkinsVariety extends Variety implements Serializable {
 		this.pumpkins = pumpkins;
 	}
 
-	@Override
-	public String toString() {
-		return "Id=" + getId() + ", Name=" + getName() + ", Place=" + getPlace();
+	public PumpkinsSeason getPumpkinsSeason() {
+		return pumpkinsSeason;
+	}
+
+	public void setPumpkinsSeason(PumpkinsSeason pumpkinsSeason) {
+		this.pumpkinsSeason = pumpkinsSeason;
 	}
 
 	@Override
@@ -49,6 +58,7 @@ public class PumpkinsVariety extends Variety implements Serializable {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((pumpkins == null) ? 0 : pumpkins.hashCode());
+		result = prime * result + ((pumpkinsSeason == null) ? 0 : pumpkinsSeason.hashCode());
 		return result;
 	}
 
@@ -66,6 +76,16 @@ public class PumpkinsVariety extends Variety implements Serializable {
 				return false;
 		} else if (!pumpkins.equals(other.pumpkins))
 			return false;
+		if (pumpkinsSeason == null) {
+			if (other.pumpkinsSeason != null)
+				return false;
+		} else if (!pumpkinsSeason.equals(other.pumpkinsSeason))
+			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Id=" + getId() + ", Name=" + getName();
 	}
 }

@@ -7,6 +7,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -19,16 +21,20 @@ public class CarrotsVariety extends Variety implements Serializable {
 	@Column(nullable = false)
 	private Set<CarrotsHarvesting> carrots;
 
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "season_id")
+	private CarrotsSeason carrotsSeason;
+	
 	public CarrotsVariety() {
 		super();
 	}
 
-	public CarrotsVariety(Integer id, String name, Set<Place> place) {
-		super(id, name, place);
+	public CarrotsVariety(Integer id, String name) {
+		super(id, name);
 	}
 
-	public CarrotsVariety(String name, Set<Place> place) {
-		super(name, place);
+	public CarrotsVariety(String name) {
+		super(name);
 	}
 
 	public Set<CarrotsHarvesting> getCarrots() {
@@ -39,9 +45,12 @@ public class CarrotsVariety extends Variety implements Serializable {
 		this.carrots = carrots;
 	}
 
-	@Override
-	public String toString() {
-		return "Id=" + getId() + ", Name=" + getName() + ", Place=" + getPlace();
+	public CarrotsSeason getCarrotsSeason() {
+		return carrotsSeason;
+	}
+
+	public void setCarrotsSeason(CarrotsSeason carrotsSeason) {
+		this.carrotsSeason = carrotsSeason;
 	}
 
 	@Override
@@ -49,6 +58,7 @@ public class CarrotsVariety extends Variety implements Serializable {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((carrots == null) ? 0 : carrots.hashCode());
+		result = prime * result + ((carrotsSeason == null) ? 0 : carrotsSeason.hashCode());
 		return result;
 	}
 
@@ -66,6 +76,16 @@ public class CarrotsVariety extends Variety implements Serializable {
 				return false;
 		} else if (!carrots.equals(other.carrots))
 			return false;
+		if (carrotsSeason == null) {
+			if (other.carrotsSeason != null)
+				return false;
+		} else if (!carrotsSeason.equals(other.carrotsSeason))
+			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Id=" + getId() + ", Name=" + getName();
 	}
 }

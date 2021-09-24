@@ -7,6 +7,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -19,16 +21,20 @@ public class FruitsVariety extends Variety implements Serializable {
 	@Column(nullable = false)
 	private Set<FruitsHarvesting> fruits;
 
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "season_id")
+	private FruitsSeason fruitsSeason;
+	
 	public FruitsVariety() {
 		super();
 	}
 
-	public FruitsVariety(Integer id, String name, Set<Place> place) {
-		super(id, name, place);
+	public FruitsVariety(Integer id, String name) {
+		super(id, name);
 	}
 
-	public FruitsVariety(String name, Set<Place> place) {
-		super(name, place);
+	public FruitsVariety(String name) {
+		super(name);
 	}
 
 	public Set<FruitsHarvesting> getFruits() {
@@ -39,9 +45,12 @@ public class FruitsVariety extends Variety implements Serializable {
 		this.fruits = fruits;
 	}
 
-	@Override
-	public String toString() {
-		return "Id=" + getId() + ", Name=" + getName() + ", Place=" + getPlace();
+	public FruitsSeason getFruitsSeason() {
+		return fruitsSeason;
+	}
+
+	public void setFruitsSeason(FruitsSeason fruitsSeason) {
+		this.fruitsSeason = fruitsSeason;
 	}
 
 	@Override
@@ -49,6 +58,7 @@ public class FruitsVariety extends Variety implements Serializable {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((fruits == null) ? 0 : fruits.hashCode());
+		result = prime * result + ((fruitsSeason == null) ? 0 : fruitsSeason.hashCode());
 		return result;
 	}
 
@@ -66,6 +76,16 @@ public class FruitsVariety extends Variety implements Serializable {
 				return false;
 		} else if (!fruits.equals(other.fruits))
 			return false;
+		if (fruitsSeason == null) {
+			if (other.fruitsSeason != null)
+				return false;
+		} else if (!fruitsSeason.equals(other.fruitsSeason))
+			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Id=" + getId() + ", Name=" + getName();
 	}
 }

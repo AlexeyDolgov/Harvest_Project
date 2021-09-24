@@ -7,6 +7,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -19,16 +21,20 @@ public class GarlicVariety extends Variety implements Serializable {
 	@Column(nullable = false)
 	private Set<GarlicHarvesting> garlic;
 
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "season_id")
+	private GarlicSeason garlicSeason;
+
 	public GarlicVariety() {
 		super();
 	}
 
-	public GarlicVariety(Integer id, String name, Set<Place> place) {
-		super(id, name, place);
+	public GarlicVariety(Integer id, String name) {
+		super(id, name);
 	}
 
-	public GarlicVariety(String name, Set<Place> place) {
-		super(name, place);
+	public GarlicVariety(String name) {
+		super(name);
 	}
 
 	public Set<GarlicHarvesting> getGarlic() {
@@ -39,9 +45,12 @@ public class GarlicVariety extends Variety implements Serializable {
 		this.garlic = garlic;
 	}
 
-	@Override
-	public String toString() {
-		return "Id=" + getId() + ", Name=" + getName() + ", Place=" + getPlace();
+	public GarlicSeason getGarlicSeason() {
+		return garlicSeason;
+	}
+
+	public void setGarlicSeason(GarlicSeason garlicSeason) {
+		this.garlicSeason = garlicSeason;
 	}
 
 	@Override
@@ -49,6 +58,7 @@ public class GarlicVariety extends Variety implements Serializable {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((garlic == null) ? 0 : garlic.hashCode());
+		result = prime * result + ((garlicSeason == null) ? 0 : garlicSeason.hashCode());
 		return result;
 	}
 
@@ -66,6 +76,16 @@ public class GarlicVariety extends Variety implements Serializable {
 				return false;
 		} else if (!garlic.equals(other.garlic))
 			return false;
+		if (garlicSeason == null) {
+			if (other.garlicSeason != null)
+				return false;
+		} else if (!garlicSeason.equals(other.garlicSeason))
+			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Id=" + getId() + ", Name=" + getName();
 	}
 }
